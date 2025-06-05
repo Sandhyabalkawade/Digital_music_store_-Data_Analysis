@@ -1,0 +1,319 @@
+1./*To create table*/
+CREATE TABLE employee (
+    employee_id SERIAL PRIMARY KEY,
+    last_name VARCHAR(100),
+    first_name VARCHAR(100),
+    title VARCHAR(100),
+    reports_to INTEGER,
+	levels varchar(10),
+    birthdate DATE,
+    hiredate DATE,
+    address VARCHAR(200),
+    city VARCHAR(100),
+    state VARCHAR(100),
+    country VARCHAR(100),
+    postal_code VARCHAR(20),
+    phone VARCHAR(50),
+    fax VARCHAR(50),
+    email VARCHAR(100),
+    FOREIGN KEY (reports_to) REFERENCES employee(employee_id)
+);
+
+2./*To import data from excel to sql*/
+COPY employee
+FROM 'C:\Users\Sandhya\OneDrive\Desktop\Digital Muasic Store Data Analysis\music store data\music store data\employee.csv'
+DELIMITER ',' 
+CSV HEADER;
+
+CREATE TABLE customer (
+    customer_id INTEGER PRIMARY KEY,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    company TEXT,
+    address TEXT,
+    city TEXT,
+    state TEXT,
+    country TEXT,
+    postal_code TEXT,
+    phone TEXT,
+    fax TEXT,
+    email TEXT,
+    support_rep_id INTEGER,
+    FOREIGN KEY (support_rep_id) REFERENCES employee(employee_id)
+);
+
+
+COPY customer
+FROM 'C:\Users\Sandhya\OneDrive\Desktop\Digital Muasic Store Data Analysis\music store data\music store data\customer.csv'
+DELIMITER ',' 
+CSV HEADER;
+
+CREATE TABLE invoice (
+    invoice_id INTEGER PRIMARY KEY,
+    customer_id INTEGER NOT NULL,
+    invoice_date DATE NOT NULL,
+    billing_address TEXT,
+    billing_city TEXT,
+    billing_state TEXT,
+    billing_country TEXT,
+    billing_postal_code TEXT,
+    total NUMERIC NOT NULL,
+    FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
+);
+
+COPY invoice
+FROM 'C:\Users\Sandhya\OneDrive\Desktop\Digital Muasic Store Data Analysis\music store data\music store data\invoice.csv'
+DELIMITER ',' 
+CSV HEADER;
+
+CREATE TABLE invoice_line (
+    invoice_line_id INTEGER PRIMARY KEY,
+    invoice_id INTEGER NOT NULL,
+    track_id INTEGER NOT NULL,
+    unit_price NUMERIC NOT NULL,
+    quantity INTEGER NOT NULL,
+    FOREIGN KEY (invoice_id) REFERENCES invoice(invoice_id),
+    FOREIGN KEY (track_id) REFERENCES track(track_id)
+);
+
+COPY invoice_line
+FROM 'C:\Users\Sandhya\OneDrive\Desktop\Digital Muasic Store Data Analysis\music store data\music store data\invoice_line.csv'
+DELIMITER ',' 
+CSV HEADER;
+
+CREATE TABLE artist (
+    artist_id INTEGER PRIMARY KEY,
+    name TEXT
+);
+
+
+COPY artist
+FROM 'C:\Users\Sandhya\OneDrive\Desktop\Digital Muasic Store Data Analysis\music store data\music store data\artist.csv'
+DELIMITER ',' 
+CSV HEADER;
+
+CREATE TABLE genre (
+    genre_id INTEGER PRIMARY KEY,
+    name TEXT
+);
+
+COPY genre
+FROM 'C:\Users\Sandhya\OneDrive\Desktop\Digital Muasic Store Data Analysis\music store data\music store data\genre.csv'
+DELIMITER ',' 
+CSV HEADER;
+
+CREATE TABLE playlist (
+    playlist_id INTEGER PRIMARY KEY,
+    name TEXT
+);
+
+COPY playlist
+FROM 'C:\Users\Sandhya\OneDrive\Desktop\Digital Muasic Store Data Analysis\music store data\music store data\playlist.csv'
+DELIMITER ',' 
+CSV HEADER;
+
+CREATE TABLE album (
+    album_id INTEGER PRIMARY KEY,
+    title TEXT NOT NULL,
+    artist_id INTEGER NOT NULL,
+    FOREIGN KEY (artist_id) REFERENCES artist(artist_id)
+);
+
+COPY album
+FROM 'C:\Users\Sandhya\OneDrive\Desktop\Digital Muasic Store Data Analysis\music store data\music store data\album.csv'
+DELIMITER ',' 
+CSV HEADER;
+
+CREATE TABLE media_type (
+    media_type_id INTEGER PRIMARY KEY,
+    name TEXT
+);
+
+COPY media_type
+FROM 'C:\Users\Sandhya\OneDrive\Desktop\Digital Muasic Store Data Analysis\music store data\music store data\media_type.csv'
+DELIMITER ',' 
+CSV HEADER;
+
+
+CREATE TABLE track (
+    track_id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    album_id INTEGER,
+    media_type_id INTEGER NOT NULL,
+    genre_id INTEGER,
+    composer TEXT,
+    milliseconds INTEGER NOT NULL,
+    bytes INTEGER,
+    unit_price NUMERIC NOT NULL,
+    FOREIGN KEY (album_id) REFERENCES album(album_id),
+    FOREIGN KEY (media_type_id) REFERENCES media_type(media_type_id),
+    FOREIGN KEY (genre_id) REFERENCES genre(genre_id)
+);
+
+COPY track
+FROM 'C:\Users\Sandhya\OneDrive\Desktop\Digital Muasic Store Data Analysis\music store data\music store data\track.csv'
+DELIMITER ',' 
+CSV HEADER;
+
+
+CREATE TABLE playlist_track (
+    playlist_id INTEGER NOT NULL,
+    track_id INTEGER NOT NULL,
+    PRIMARY KEY (playlist_id, track_id),
+    FOREIGN KEY (playlist_id) REFERENCES playlist(playlist_id),
+    FOREIGN KEY (track_id) REFERENCES track(track_id)
+);
+
+COPY playlist_track
+FROM 'C:\Users\Sandhya\OneDrive\Desktop\Digital Muasic Store Data Analysis\music store data\music store data\playlist_track.csv'
+DELIMITER ',' 
+CSV HEADER;
+
+3./* to updating nulls and Check and replacing dublicates */
+
+SELECT * FROM customer
+WHERE customer_id IS NULL OR first_name IS NULL OR	last_name IS NULL OR company IS NULL OR	
+address IS NULL OR	city IS NULL OR	state IS NULL OR country IS NULL OR postal_code IS NULL OR	
+phone IS NULL OR fax IS NULL OR email IS NULL OR support_rep_id IS NULL;
+
+UPDATE customer SET company = 'NA' WHERE company IS NULL;
+UPDATE customer SET address = 'Not Provided' WHERE address IS NULL;
+UPDATE customer SET city = 'Unknown' WHERE city IS NULL;
+UPDATE customer SET state = 'Unknown' WHERE state IS NULL;
+UPDATE customer SET country = 'Unknown' WHERE country IS NULL;
+UPDATE customer SET postal_code = '000000' WHERE postal_code IS NULL;
+UPDATE customer SET phone = '000-000-0000' WHERE phone IS NULL;
+UPDATE customer SET fax = '000-000-0000' WHERE fax IS NULL;
+UPDATE customer SET email = 'noemail@example.com' WHERE email IS NULL;
+UPDATE customer SET support_rep_id = 0 WHERE support_rep_id IS NULL;
+
+/*to find null records*/
+SELECT * FROM track
+WHERE composer IS NULL;
+
+4./*to update null values*/
+UPDATE track SET composer = 'Unknown Composer' WHERE composer IS NULL;
+
+5./*to count no. of duplicate records*/
+SELECT name, COUNT(*)
+FROM genre
+GROUP BY name
+HAVING COUNT(*) > 1;
+
+6./* to remove duplicates from column*/
+DELETE FROM genre
+WHERE ctid NOT IN (
+  SELECT MIN(ctid)
+  FROM genre
+  GROUP BY name
+);
+
+7./*Total Revenue by Country*/
+
+SELECT 
+    c.country,
+    ROUND(SUM(i.total), 2) AS total_revenue
+FROM invoice i
+JOIN customer c ON i.customer_id = c.customer_id
+GROUP BY c.country
+ORDER BY total_revenue DESC;
+
+8./*Customer Count by Country*/
+
+SELECT 
+    country,
+    COUNT(customer_id) AS customer_count
+FROM customer
+GROUP BY country
+ORDER BY customer_count DESC
+LIMIT 5;
+
+9./* Monthly Invoice Count*/
+
+SELECT 
+    DATE_TRUNC('month', invoice_date) AS month,
+    COUNT(invoice_id) AS invoice_count
+FROM invoice
+GROUP BY month
+ORDER BY month;
+
+
+
+10./*Top 5 Customers by Total Spending*/
+
+SELECT 
+    c.first_name || ' ' || c.last_name AS customer_name,
+    ROUND(SUM(i.total), 2) AS total_spent
+FROM invoice i
+JOIN customer c ON i.customer_id = c.customer_id
+GROUP BY customer_name
+ORDER BY total_spent DESC
+LIMIT 5;
+
+11./*Top 10 Selling Tracks*/
+
+SELECT 
+    t.name AS track_name,
+    SUM(il.quantity) AS units_sold
+FROM invoice_line il
+JOIN track t ON il.track_id = t.track_id
+GROUP BY t.name
+ORDER BY units_sold DESC
+LIMIT 10;
+
+12./*Revenue by Genre*/
+
+SELECT 
+    g.name AS genre,
+    ROUND(SUM(il.unit_price * il.quantity), 2) AS revenue
+FROM invoice_line il
+JOIN track t ON il.track_id = t.track_id
+JOIN genre g ON t.genre_id = g.genre_id
+GROUP BY g.name
+ORDER BY revenue DESC;
+
+13./*Most Popular Artists by Sales Volume*/
+
+SELECT 
+    ar.name AS artist,
+    SUM(il.quantity) AS total_tracks_sold
+FROM invoice_line il
+JOIN track t ON il.track_id = t.track_id
+JOIN album a ON t.album_id = a.album_id
+JOIN artist ar ON a.artist_id = ar.artist_id
+GROUP BY ar.name
+ORDER BY total_tracks_sold DESC
+LIMIT 10;
+
+14./*Most Used Media Types*/
+
+SELECT 
+    m.name AS media_type,
+    COUNT(il.invoice_line_id) AS total_sold
+FROM invoice_line il
+JOIN track t ON il.track_id = t.track_id
+JOIN media_type m ON t.media_type_id = m.media_type_id
+GROUP BY media_type
+ORDER BY total_sold DESC;
+
+15./*Monthly Revenue Trend*/
+
+SELECT 
+    DATE_TRUNC('month', invoice_date) AS month,
+    ROUND(SUM(total), 2) AS monthly_revenue
+FROM invoice
+GROUP BY month
+ORDER BY month
+LIMIT 15;
+
+16./*Top Albums by Revenue*/
+
+SELECT 
+    a.title AS album_title,
+    ROUND(SUM(il.unit_price * il.quantity), 2) AS revenue
+FROM invoice_line il
+JOIN track t ON il.track_id = t.track_id
+JOIN album a ON t.album_id = a.album_id
+GROUP BY a.title
+ORDER BY revenue DESC
+LIMIT 10;
